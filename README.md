@@ -21,18 +21,18 @@ All data stays on the phone.
 
 ## Deploy to GitHub Pages
 
-With the GitHub CLI signed in (`gh auth login`), from this folder:
+The repository includes `.github/workflows/pages.yml`. Every push to `main` publishes the app
+to GitHub Pages, and the first run turns Pages on by itself. The app is live at
+`https://YOUR-USERNAME.github.io/workout-tracker/` about a minute after a push.
+
+To set it up on a fresh repository: create a public repository on github.com named
+`workout-tracker`, then from this folder:
 
 ```sh
 git init -b main && git add -A && git commit -m "Workout tracker"
-gh repo create workout-tracker --public --source . --push
-gh api -X POST repos/{owner}/workout-tracker/pages -f build_type=legacy -f "source[branch]=main" -f "source[path]=/"
+git remote add origin https://github.com/YOUR-USERNAME/workout-tracker.git
+git push -u origin main
 ```
-
-Without the CLI: create a new public repository on github.com, upload these files, then open
-Settings, Pages, and under "Build and deployment" choose "Deploy from a branch", branch `main`,
-folder `/ (root)`, and save. A minute later the app is live at
-`https://YOUR-USERNAME.github.io/workout-tracker/`.
 
 ## Add to the iPhone home screen
 
@@ -43,7 +43,7 @@ folder `/ (root)`, and save. A minute later the app is live at
 ## Ship an update
 
 After changing any file, bump `VERSION` in `sw.js` (for example `v1` to `v2`), commit and push.
-Phones pick up the new files the next time the app is opened.
+The workflow publishes it, and phones pick up the new files the next time the app is opened.
 
 ## Edit the program
 
