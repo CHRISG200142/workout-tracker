@@ -22,11 +22,12 @@ All data stays on the phone.
 ## Deploy to GitHub Pages
 
 The repository includes `.github/workflows/pages.yml`. Every push to `main` publishes the app
-to GitHub Pages, and the first run turns Pages on by itself. The app is live at
-`https://YOUR-USERNAME.github.io/workout-tracker/` about a minute after a push.
+to GitHub Pages. The app is live at `https://YOUR-USERNAME.github.io/workout-tracker/` about a
+minute after a push.
 
 To set it up on a fresh repository: create a public repository on github.com named
-`workout-tracker`, then from this folder:
+`workout-tracker`, open its Settings, Pages, and set "Source" to "GitHub Actions". Then from
+this folder:
 
 ```sh
 git init -b main && git add -A && git commit -m "Workout tracker"
