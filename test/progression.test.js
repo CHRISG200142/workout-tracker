@@ -1,7 +1,7 @@
 /* test/progression.test.js
  * Run with:  node test/progression.test.js
  *
- * Simulates 12 weeks of the rolling 4-day program (48 workouts) using the same
+ * Simulates 12 weeks of the rolling 3-day program (36 workouts) using the same
  * rule functions the app uses (progression.js) and the default program (program.js).
  * Barbell Squat, Overhead Pull-up and Lateral Raise follow scripted outcomes with a
  * mix of hits, misses, skips, overrides and three-miss deloads; every other exercise
@@ -49,8 +49,7 @@ DEFAULTS.exercises.forEach(e => { progress[e.id] = { weight: e.id in starting ? 
 //   { use: W, outcome } overrides the recommended weight with W for every set
 const script = {
   squat: ['hit', 'hit', 'miss', 'hit', 'miss', 'miss', 'miss', 'hit', { use: 250, outcome: 'hit' }, 'skip', 'miss', { use: 255, outcome: 'miss' }],
-  pullup: ['hit', 'hit', 'hit', 'miss', 'miss', 'miss', 'hit', 'hit', 'miss', 'skip', 'miss', 'hit',
-           'hit', 'hit', 'miss', 'miss', 'miss', 'hit', 'hit', 'miss', 'hit', 'hit', 'miss', 'hit'],
+  pullup: ['hit', 'hit', 'hit', 'miss', 'miss', 'miss', 'hit', 'hit', 'miss', 'skip', 'miss', 'hit'],
   'lateral-raise': ['hit', 'miss', 'hit', 'miss', 'miss', 'miss', 'hit', 'hit', 'hit', 'miss', 'miss', 'hit',
                     'miss', 'miss', 'miss', 'hit', 'hit+', 'miss', 'skip', 'skip', 'miss', 'miss', 'hit', 'hit'],
 };
@@ -58,8 +57,7 @@ const script = {
 // Expected recommendation AFTER each session, worked out by hand from the rules.
 const expected = {
   squat: [235, 245, 245, 255, 255, 255, 230, 240, 260, 260, 260, 255],
-  pullup: [2.5, 5, 7.5, 7.5, 7.5, 5, 7.5, 10, 10, 10, 10, 12.5,
-           15, 17.5, 17.5, 17.5, 15, 17.5, 20, 20, 22.5, 25, 25, 27.5],
+  pullup: [2.5, 5, 7.5, 7.5, 7.5, 5, 7.5, 10, 10, 10, 10, 12.5],
   'lateral-raise': [17.5, 17.5, 20, 20, 20, 17.5, 20, 22.5, 25, 25, 25, 27.5,
                     27.5, 27.5, 25, 27.5, 30, 30, 30, 30, 30, 27.5, 30, 32.5],
 };
@@ -98,8 +96,8 @@ function performExercise(id, outcome, week, dayName) {
 }
 
 let dayIndex = 0; // rolling order: the next workout is the day after the last completed one
-for (let workout = 0; workout < 48; workout++) {
-  const week = Math.floor(workout / 4) + 1;
+for (let workout = 0; workout < 36; workout++) {
+  const week = Math.floor(workout / 3) + 1;
   const day = DEFAULTS.days[dayIndex];
   day.exercises.forEach(id => {
     const outcome = script[id] ? script[id][counters[id]++] : 'hit';
@@ -124,10 +122,10 @@ for (const id of Object.keys(script)) {
   assert.strictEqual(log[id].length, expected[id].length, `${ex.name} should have ${expected[id].length} sessions in 12 weeks`);
 }
 
-// Shared exercises: Lateral Raise on Day 2 and Day 4 share one history and one progression.
+// Shared exercises: Lateral Raise on Day 1 and Day 2 shares one history and one progression.
+assert.strictEqual(log['lateral-raise'].filter(r => r.dayName === 'Day 1').length, 12);
 assert.strictEqual(log['lateral-raise'].filter(r => r.dayName === 'Day 2').length, 12);
-assert.strictEqual(log['lateral-raise'].filter(r => r.dayName === 'Day 4').length, 12);
 assert.strictEqual(log.pullup.filter(r => r.dayName === 'Day 1').length, 12);
-assert.strictEqual(log.pullup.filter(r => r.dayName === 'Day 3').length, 12);
+assert.strictEqual(log.squat.filter(r => r.dayName === 'Day 2').length, 12);
 
 console.log('\nAll progression checks passed.');

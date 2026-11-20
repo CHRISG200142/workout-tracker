@@ -1,7 +1,7 @@
 /* sw.js — service worker. Caches the app so it opens offline.
  * After changing any file, bump VERSION so phones fetch the new files.
  */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = `workout-tracker-${VERSION}`;
 const ASSETS = [
   './',

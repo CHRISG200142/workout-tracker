@@ -8,7 +8,7 @@
 
 const P = window.Progression;
 const DEFAULTS = window.ProgramDefaults;
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.1.0';
 const DATA_KEY = 'workout-tracker-data';
 const UI_KEY = 'workout-tracker-ui';
 
@@ -29,7 +29,7 @@ function freshData() {
     progress[e.id] = { weight: 0, misses: 0 };
   });
   return {
-    version: 1,
+    version: 2,
     setupDone: false,
     settings: { sound: true },
     exercises,                                    // id -> { id, name, type, sets, reps, increment, rest }
@@ -43,11 +43,19 @@ function freshData() {
 // Brings older saved data up to the current schema. Add a step here whenever the schema changes.
 function migrate(d) {
   if (!d || typeof d !== 'object') throw new Error('Not a data file.');
-  if (!d.version) d.version = 1;
-  // Example for a future change:
-  // if (d.version === 1) { d.newField = 'default'; d.version = 2; }
   if (!d.exercises || !Array.isArray(d.days) || !Array.isArray(d.sessions) || !d.progress) {
     throw new Error('Not a workout tracker file.');
+  }
+  if (!d.version) d.version = 1;
+  if (d.version === 1) {
+    // November 2026: the program changed from four days to three. Every exercise, weight and
+    // workout is kept, the new exercises are added, and the day lists become the new program.
+    DEFAULTS.exercises.forEach(e => {
+      if (!d.exercises[e.id]) d.exercises[e.id] = Object.assign({}, e);
+      if (!d.progress[e.id]) d.progress[e.id] = { weight: 0, misses: 0 };
+    });
+    d.days = DEFAULTS.days.map(day => ({ name: day.name, exercises: day.exercises.slice() }));
+    d.version = 2;
   }
   if (!d.settings) d.settings = { sound: true };
   if (d.active === undefined) d.active = null;
@@ -104,11 +112,14 @@ function weightLabel(type, w) {
   if (type === 'bodyweight') return w === 0 ? 'Bodyweight' : `+${fmtW(w)} lb`;
   return `${fmtW(w)} lb`;
 }
-// Rolling order: the day after the last completed workout.
+// Rolling order: the day after the last completed workout. After the last day, or after a day
+// that no longer exists, the next workout is Day 1.
 function nextDayIndex() {
   if (!data.days.length) return 0;
   const last = data.sessions[data.sessions.length - 1];
-  return last ? (last.dayIndex + 1) % data.days.length : 0;
+  if (!last) return 0;
+  const next = last.dayIndex + 1;
+  return next >= data.days.length ? 0 : next;
 }
 function lastResult(exId) {
   for (let i = data.sessions.length - 1; i >= 0; i--) {
@@ -911,6 +922,7 @@ function registerServiceWorker() {
   });
 }
 function init() {
+  save(); // keeps any migration applied by load()
   ui.params = ui.params || {};
   ui.stack = ui.stack || [];
   if (!data.setupDone) { ui.screen = 'setup'; ui.stack = []; }

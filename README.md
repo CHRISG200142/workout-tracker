@@ -1,7 +1,7 @@
 # Workout Tracker
 
 A personal workout tracker that runs as a home-screen web app on an iPhone. It runs a fixed
-4-day program in rolling order, logs every set, and recommends the weight for the next session.
+3-day program in rolling order, logs every set, and recommends the weight for the next session.
 Plain HTML, CSS and JavaScript. No framework, no build step, no backend, no accounts.
 All data stays on the phone.
 
@@ -13,7 +13,7 @@ All data stays on the phone.
 | `style.css` | All styling, light and dark mode |
 | `app.js` | Screens, actions, rest timer, sound, wake lock, export and import |
 | `progression.js` | The progression rules (pure functions, also used by the test) |
-| `program.js` | The default program: exercise library and the four days |
+| `program.js` | The default program: exercise library and the three days |
 | `sw.js` | Service worker so the app opens offline |
 | `manifest.json` | Web app manifest (name, icon, standalone display) |
 | `icons/` | App icons (180 for iOS, 192 and 512 for the manifest) |
@@ -72,5 +72,7 @@ sequences for Barbell Squat, Overhead Pull-up and Lateral Raise and checks them.
 ## Data and backups
 
 Everything is stored in the browser's localStorage under one versioned JSON document
-(`version: 1`). `migrate()` in `app.js` is where future schema changes convert old data.
+(`version: 2`). `migrate()` in `app.js` is where schema changes convert old data. Version 2
+(November 2026) replaced the original four days with the current three-day program while
+keeping every exercise, weight and workout.
 Export regularly from Program, Settings. If Safari data is cleared, the export is the only copy.

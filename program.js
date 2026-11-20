@@ -1,7 +1,8 @@
 /* program.js
- * The default program: the exercise library and the four days.
+ * The default program: the exercise library and the three days.
  * Used on the first run and after "Reset all data". Once the app has saved data,
- * edit the program inside the app (Program tab); changing this file does not alter saved data.
+ * edit the program inside the app (Program tab); changing this file does not alter saved data,
+ * except through a migration step in app.js when the schema version changes.
  *
  * Fields: sets and reps are the target, increment is in lb, rest is in seconds.
  * type is 'barbell', 'dumbbell', 'machine' or 'bodyweight' (weighted bodyweight: the app
@@ -16,30 +17,26 @@
   'use strict';
 
   var exercises = [
-    { id: 'paused-bench',     name: 'Paused Barbell Bench Press',          type: 'barbell',    sets: 3, reps: 5,  increment: 5,   rest: 180 },
-    { id: 'sa-db-row',        name: 'Single Arm Dumbbell Row',             type: 'dumbbell',   sets: 3, reps: 5,  increment: 2.5, rest: 90 },
-    { id: 'db-fly',           name: 'Dumbbell Chest Fly',                  type: 'dumbbell',   sets: 3, reps: 6,  increment: 2.5, rest: 90 },
-    { id: 'pullup',           name: 'Overhead Pull-up',                    type: 'bodyweight', sets: 3, reps: 5,  increment: 2.5, rest: 180 },
-    { id: 'tricep-pushdown',  name: 'Tricep Pushdown',                     type: 'machine',    sets: 3, reps: 8,  increment: 5,   rest: 90 },
-    { id: 'squat',            name: 'Barbell Squat',                       type: 'barbell',    sets: 3, reps: 5,  increment: 10,  rest: 180 },
-    { id: 'rdl',              name: 'Barbell RDL',                         type: 'barbell',    sets: 3, reps: 5,  increment: 10,  rest: 180 },
-    { id: 'incline-curl',     name: 'Incline Dumbbell Bicep Curl',         type: 'dumbbell',   sets: 3, reps: 8,  increment: 2.5, rest: 90 },
-    { id: 'leg-ext',          name: 'Leg Extension',                       type: 'machine',    sets: 3, reps: 8,  increment: 5,   rest: 90 },
-    { id: 'lateral-raise',    name: 'Lateral Raise',                       type: 'dumbbell',   sets: 3, reps: 12, increment: 2.5, rest: 90 },
-    { id: 'incline-db-bench', name: 'Incline Dumbbell Bench Press',        type: 'dumbbell',   sets: 3, reps: 5,  increment: 2.5, rest: 90 },
-    { id: 'incline-db-row',   name: 'Incline Dumbbell Row',                type: 'dumbbell',   sets: 3, reps: 5,  increment: 2.5, rest: 90 },
-    { id: 'sa-db-ohp',        name: 'Single Arm Dumbbell Overhead Press',  type: 'dumbbell',   sets: 3, reps: 5,  increment: 2.5, rest: 90 },
-    { id: 'oh-tricep-ext',    name: 'Overhead Dumbbell Tricep Extension',  type: 'dumbbell',   sets: 3, reps: 8,  increment: 2.5, rest: 90 },
-    { id: 'sumo-dl',          name: 'Sumo Deadlift (Barbell)',             type: 'barbell',    sets: 3, reps: 5,  increment: 10,  rest: 180 },
-    { id: 'db-split-squat',   name: 'Dumbbell Split Squat',                type: 'dumbbell',   sets: 3, reps: 8,  increment: 2.5, rest: 90 },
-    { id: 'hip-abductor',     name: 'Hip Abductor Machine',                type: 'machine',    sets: 3, reps: 8,  increment: 5,   rest: 90 }
+    { id: 'paused-bench',    name: 'Paused Barbell Bench Press',         type: 'barbell',    sets: 3, reps: 5,  increment: 5,   rest: 180 },
+    { id: 'row-machine',     name: 'Row Machine',                        type: 'machine',    sets: 3, reps: 5,  increment: 5,   rest: 90 },
+    { id: 'pullup',          name: 'Overhead Pull-up',                   type: 'bodyweight', sets: 3, reps: 5,  increment: 2.5, rest: 180 },
+    { id: 'tricep-pushdown', name: 'Tricep Pushdown',                    type: 'machine',    sets: 3, reps: 8,  increment: 5,   rest: 90 },
+    { id: 'db-split-squat',  name: 'Dumbbell Split Squat',               type: 'dumbbell',   sets: 3, reps: 8,  increment: 2.5, rest: 90 },
+    { id: 'lateral-raise',   name: 'Lateral Raise',                      type: 'dumbbell',   sets: 3, reps: 12, increment: 2.5, rest: 90 },
+    { id: 'squat',           name: 'Barbell Squat',                      type: 'barbell',    sets: 3, reps: 5,  increment: 10,  rest: 180 },
+    { id: 'rdl',             name: 'Barbell RDL',                        type: 'barbell',    sets: 3, reps: 5,  increment: 10,  rest: 180 },
+    { id: 'incline-curl',    name: 'Incline Dumbbell Bicep Curl',        type: 'dumbbell',   sets: 3, reps: 8,  increment: 2.5, rest: 90 },
+    { id: 'leg-ext',         name: 'Leg Extension',                      type: 'machine',    sets: 3, reps: 8,  increment: 5,   rest: 90 },
+    { id: 'incline-bench',   name: 'Incline Barbell Bench Press',        type: 'barbell',    sets: 3, reps: 5,  increment: 5,   rest: 180 },
+    { id: 'ohp-machine',     name: 'Overhead Press Machine',             type: 'machine',    sets: 3, reps: 5,  increment: 5,   rest: 90 },
+    { id: 'oh-tricep-ext',   name: 'Overhead Dumbbell Tricep Extension', type: 'dumbbell',   sets: 3, reps: 8,  increment: 2.5, rest: 90 },
+    { id: 'sumo-dl',         name: 'Sumo Deadlift (Barbell)',            type: 'barbell',    sets: 3, reps: 5,  increment: 10,  rest: 180 }
   ];
 
   var days = [
-    { name: 'Day 1', exercises: ['paused-bench', 'sa-db-row', 'db-fly', 'pullup', 'tricep-pushdown'] },
-    { name: 'Day 2', exercises: ['squat', 'rdl', 'incline-curl', 'leg-ext', 'lateral-raise'] },
-    { name: 'Day 3', exercises: ['incline-db-bench', 'incline-db-row', 'sa-db-ohp', 'pullup', 'oh-tricep-ext'] },
-    { name: 'Day 4', exercises: ['sumo-dl', 'db-split-squat', 'hip-abductor', 'incline-curl', 'lateral-raise'] }
+    { name: 'Day 1', exercises: ['paused-bench', 'row-machine', 'pullup', 'tricep-pushdown', 'db-split-squat', 'lateral-raise'] },
+    { name: 'Day 2', exercises: ['squat', 'rdl', 'incline-curl', 'leg-ext', 'lateral-raise', 'tricep-pushdown'] },
+    { name: 'Day 3', exercises: ['incline-bench', 'row-machine', 'ohp-machine', 'incline-curl', 'oh-tricep-ext', 'sumo-dl'] }
   ];
 
   return { exercises: exercises, days: days };
