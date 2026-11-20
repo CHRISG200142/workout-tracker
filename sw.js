@@ -1,7 +1,7 @@
 /* sw.js — service worker. Caches the app so it opens offline.
  * After changing any file, bump VERSION so phones fetch the new files.
  */
-const VERSION = 'v3';
+const VERSION = 'v4';
 const CACHE = `workout-tracker-${VERSION}`;
 const ASSETS = [
   './',
@@ -11,9 +11,9 @@ const ASSETS = [
   './program.js',
   './progression.js',
   './manifest.json',
-  './icons/icon-180.png',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icons/app-180.png',
+  './icons/app-192.png',
+  './icons/app-512.png'
 ];
 
 self.addEventListener('install', event => {
