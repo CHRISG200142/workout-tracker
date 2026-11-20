@@ -8,7 +8,7 @@
 
 const P = window.Progression;
 const DEFAULTS = window.ProgramDefaults;
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.1.1';
 const DATA_KEY = 'workout-tracker-data';
 const UI_KEY = 'workout-tracker-ui';
 
@@ -29,13 +29,14 @@ function freshData() {
     progress[e.id] = { weight: 0, misses: 0 };
   });
   return {
-    version: 2,
+    version: 3,
     setupDone: false,
     settings: { sound: true },
     exercises,                                    // id -> { id, name, type, sets, reps, increment, rest }
     days: DEFAULTS.days.map(d => ({ name: d.name, exercises: d.exercises.slice() })),
     progress,                                     // id -> { weight: next recommendation, misses }
     sessions: [],                                 // completed workouts, oldest first
+    nextDay: 0,                                   // index of the next day in the rolling order
     active: null                                  // the workout in progress, if any
   };
 }
@@ -57,9 +58,19 @@ function migrate(d) {
     d.days = DEFAULTS.days.map(day => ({ name: day.name, exercises: day.exercises.slice() }));
     d.version = 2;
   }
+  if (d.version === 2) {
+    // The new program starts at Day 1, and a workout left in progress with nothing logged
+    // (started under the old program) is dropped so Home stops offering to resume it.
+    d.nextDay = 0;
+    if (d.active && !hasLoggedSets(d.active)) d.active = null;
+    d.version = 3;
+  }
   if (!d.settings) d.settings = { sound: true };
   if (d.active === undefined) d.active = null;
   return d;
+}
+function hasLoggedSets(workout) {
+  return workout.exercises.some(e => e.sets.some(s => s.status !== 'pending'));
 }
 
 function load() {
@@ -112,10 +123,11 @@ function weightLabel(type, w) {
   if (type === 'bodyweight') return w === 0 ? 'Bodyweight' : `+${fmtW(w)} lb`;
   return `${fmtW(w)} lb`;
 }
-// Rolling order: the day after the last completed workout. After the last day, or after a day
-// that no longer exists, the next workout is Day 1.
+// Rolling order: the day after the last completed workout, kept in data.nextDay. After the last
+// day the next workout is Day 1. If the stored value is unusable, derive it from the last workout.
 function nextDayIndex() {
   if (!data.days.length) return 0;
+  if (Number.isInteger(data.nextDay) && data.nextDay >= 0 && data.nextDay < data.days.length) return data.nextDay;
   const last = data.sessions[data.sessions.length - 1];
   if (!last) return 0;
   const next = last.dayIndex + 1;
@@ -566,8 +578,7 @@ function relog(e, s) {
 function finishWorkout() {
   const a = data.active;
   if (!a) return;
-  const anyLogged = a.exercises.some(e => !e.skipped && e.sets.some(s => s.status !== 'pending'));
-  if (!anyLogged) {
+  if (!hasLoggedSets(a)) {
     if (confirm('Nothing was logged. Discard this workout?')) { data.active = null; save(); go('home'); }
     return;
   }
@@ -582,6 +593,7 @@ function finishWorkout() {
   });
   const session = { id: a.id, dayIndex: a.dayIndex, dayName: a.dayName, startedAt: a.startedAt, finishedAt, exercises };
   data.sessions.push(session);
+  data.nextDay = a.dayIndex + 1 >= data.days.length ? 0 : a.dayIndex + 1;
   data.active = null;
   save();
   go('summary', { id: session.id });
@@ -915,9 +927,10 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   let hadController = !!navigator.serviceWorker.controller;
   navigator.serviceWorker.register('./sw.js').catch(() => {});
-  // A new version took over: reload to use it, unless a workout is in progress.
+  // A new version took over: reload to use it, unless the workout or setup screen is open.
+  // Every logged set is already saved, so a reload elsewhere loses nothing.
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (hadController && !data.active && ui.screen !== 'setup') location.reload();
+    if (hadController && ui.screen !== 'workout' && ui.screen !== 'setup') location.reload();
     hadController = true;
   });
 }

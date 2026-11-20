@@ -72,7 +72,11 @@ sequences for Barbell Squat, Overhead Pull-up and Lateral Raise and checks them.
 ## Data and backups
 
 Everything is stored in the browser's localStorage under one versioned JSON document
-(`version: 2`). `migrate()` in `app.js` is where schema changes convert old data. Version 2
+(`version: 3`). `migrate()` in `app.js` is where schema changes convert old data. Version 2
 (November 2026) replaced the original four days with the current three-day program while
-keeping every exercise, weight and workout.
+keeping every exercise, weight and workout, and version 3 restarted the rotation at Day 1 and
+dropped an unfinished workout left over from the old program.
+
+An unfinished workout with nothing logged can always be cleared by tapping Resume Workout, then
+Finish Workout, and confirming the discard.
 Export regularly from Program, Settings. If Safari data is cleared, the export is the only copy.
